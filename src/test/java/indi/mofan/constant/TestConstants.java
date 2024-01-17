@@ -12,4 +12,9 @@ public final class TestConstants {
      * 默认生成路径
      */
     public static final String DEFAULT_GENERATED_PATH = "./target/javapoet-files/";
+
+    /**
+     * 默认包路径
+     */
+    public static final String DEFAULT_PACKAGE_NAME = "com.example.helloworld";
 }

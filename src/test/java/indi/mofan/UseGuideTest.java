@@ -17,6 +17,9 @@ import java.util.List;
  * @date 2024/1/15 22:55
  */
 public class UseGuideTest {
+
+    private static final File TARGET_FILE = new File(TestConstants.DEFAULT_GENERATED_PATH);
+
     @Test
     @SneakyThrows
     public void testExample() {
@@ -32,9 +35,9 @@ public class UseGuideTest {
                 .addMethod(main)
                 .build();
 
-        JavaFile javaFile = JavaFile.builder("com.example.helloworld", helloWorld).build();
+        JavaFile javaFile = JavaFile.builder(TestConstants.DEFAULT_PACKAGE_NAME, helloWorld).build();
 
-        javaFile.writeTo(new File(TestConstants.DEFAULT_GENERATED_PATH));
+        javaFile.writeTo(TARGET_FILE);
     }
 
     private MethodSpec computeRange(String name, int from, int to, String op) {
@@ -100,8 +103,50 @@ public class UseGuideTest {
                 .build();
         methodSpecs.add(main4);
 
-        JavaFile javaFile = JavaFile.builder("com.example.helloworld", typeBuilder.addMethods(methodSpecs).build())
+        JavaFile javaFile = JavaFile.builder(TestConstants.DEFAULT_PACKAGE_NAME, typeBuilder.addMethods(methodSpecs).build())
                 .build();
-        javaFile.writeTo(new File(TestConstants.DEFAULT_GENERATED_PATH));
+        javaFile.writeTo(TARGET_FILE);
+    }
+
+    @Test
+    @SneakyThrows
+    public void test$L() {
+        MethodSpec main = MethodSpec.methodBuilder("main")
+                .returns(int.class)
+                .addStatement("int result = 0")
+                .beginControlFlow("for (int i = $L; i < $L; i++)", 0, 100)
+                .addStatement("result = result $L i", "*")
+                .endControlFlow()
+                .addStatement("return result")
+                .build();
+
+        TypeSpec $L = TypeSpec.classBuilder("$L")
+                .addModifiers(Modifier.PUBLIC)
+                .addMethod(main)
+                .build();
+
+        JavaFile javaFile = JavaFile.builder(TestConstants.DEFAULT_PACKAGE_NAME, $L).build();
+        javaFile.writeTo(TARGET_FILE);
+    }
+
+    private MethodSpec whatsMyName(String name) {
+        return MethodSpec.methodBuilder(name)
+                .returns(String.class)
+                .addStatement("return $S", name)
+                .build();
+    }
+
+    @Test
+    @SneakyThrows
+    public void test$S() {
+        TypeSpec $S = TypeSpec.classBuilder("$S")
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addMethods(List.of(whatsMyName("slimShady"), whatsMyName("eminem"), whatsMyName("marshallMathers")))
+                .build();
+
+        JavaFile javaFile = JavaFile.builder(TestConstants.DEFAULT_PACKAGE_NAME, $S)
+                .build();
+
+        javaFile.writeTo(TARGET_FILE);
     }
 }
