@@ -1,7 +1,9 @@
 package indi.mofan;
 
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import indi.mofan.constant.TestConstants;
 import lombok.SneakyThrows;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -18,6 +21,7 @@ import java.util.List;
  */
 public class UseGuideTest {
 
+    private static final String HELLO_WORLD_CLASS_NAME = "HelloWorld";
     private static final File TARGET_FILE = new File(TestConstants.DEFAULT_GENERATED_PATH);
 
     @Test
@@ -30,7 +34,7 @@ public class UseGuideTest {
                 .addStatement("$T.out.println($S)", System.class, "Hello, JavaPoet")
                 .build();
 
-        TypeSpec helloWorld = TypeSpec.classBuilder("HelloWorld")
+        TypeSpec helloWorld = TypeSpec.classBuilder(HELLO_WORLD_CLASS_NAME)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addMethod(main)
                 .build();
@@ -147,6 +151,47 @@ public class UseGuideTest {
         JavaFile javaFile = JavaFile.builder(TestConstants.DEFAULT_PACKAGE_NAME, $S)
                 .build();
 
+        javaFile.writeTo(TARGET_FILE);
+    }
+
+    @Test
+    @SneakyThrows
+    public void test$T() {
+        List<MethodSpec> methodSpecs = new ArrayList<>();
+
+        // 引用现有的类
+        MethodSpec methodSpec = MethodSpec.methodBuilder("today")
+                .returns(Date.class)
+                .addStatement("return new $T()", Date.class)
+                .build();
+        methodSpecs.add(methodSpec);
+
+        // 引用生成的类
+        ClassName helloWorld = ClassName.get(TestConstants.DEFAULT_PACKAGE_NAME, HELLO_WORLD_CLASS_NAME);
+        MethodSpec tomorrow = MethodSpec.methodBuilder("tomorrow")
+                .returns(helloWorld)
+                .addStatement("return new $T()", helloWorld)
+                .build();
+        methodSpecs.add(tomorrow);
+
+        // 使用 ClassName 定义不同的类
+        ClassName list = ClassName.get("java.util", "List");
+        ClassName arrayList = ClassName.get("java.util", "ArrayList");
+        ParameterizedTypeName listOfHelloWorld = ParameterizedTypeName.get(list, helloWorld);
+        MethodSpec beyond = MethodSpec.methodBuilder("beyond")
+                .returns(listOfHelloWorld)
+                .addStatement("$T result = new $T<>()", listOfHelloWorld, arrayList)
+                .addStatement("result.add(new $T())", helloWorld)
+                .addStatement("result.add(new $T())", helloWorld)
+                .addStatement("return result")
+                .build();
+        methodSpecs.add(beyond);
+
+        TypeSpec $T = TypeSpec.classBuilder("$T")
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addMethods(methodSpecs)
+                .build();
+        JavaFile javaFile = JavaFile.builder(TestConstants.DEFAULT_PACKAGE_NAME, $T).build();
         javaFile.writeTo(TARGET_FILE);
     }
 }
