@@ -323,4 +323,24 @@ public class UseGuideTest implements WithAssertions {
         JavaFile javaFile = JavaFile.builder(DEFAULT_PACKAGE_NAME, typeSpec).build();
         javaFile.writeTo(TARGET_FILE);
     }
+
+    @Test
+    @SneakyThrows
+    public void testInterfaces() {
+        TypeSpec typeSpec = TypeSpec.interfaceBuilder("MyInterface")
+                .addModifiers(Modifier.PUBLIC)
+                .addField(
+                        FieldSpec.builder(String.class, "ONLY_THING_THAT_IS_CONSTANT")
+                                .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                                .initializer("$S", "change")
+                                .build())
+                .addMethod(
+                        MethodSpec.methodBuilder("beep")
+                                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                .build())
+                .build();
+
+        JavaFile javaFile = JavaFile.builder(DEFAULT_PACKAGE_NAME, typeSpec).build();
+        javaFile.writeTo(TARGET_FILE);
+    }
 }
