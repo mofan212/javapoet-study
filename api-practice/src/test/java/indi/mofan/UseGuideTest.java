@@ -2,6 +2,7 @@ package indi.mofan;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -295,6 +296,28 @@ public class UseGuideTest implements WithAssertions {
 
         TypeSpec typeSpec = TypeSpec.classBuilder("Parameter")
                 .addMethod(methodSpec)
+                .build();
+
+        JavaFile javaFile = JavaFile.builder(DEFAULT_PACKAGE_NAME, typeSpec).build();
+        javaFile.writeTo(TARGET_FILE);
+    }
+
+    @Test
+    @SneakyThrows
+    public void testFields() {
+        FieldSpec name = FieldSpec.builder(String.class, "name")
+                .addModifiers(Modifier.PRIVATE)
+                .build();
+
+        FieldSpec test = FieldSpec.builder(String.class, "test")
+                .addModifiers(Modifier.PRIVATE)
+                .initializer("$S + $L", "abc", 123)
+                .build();
+
+        TypeSpec typeSpec = TypeSpec.classBuilder("Person")
+                .addModifiers(Modifier.PUBLIC)
+                .addFields(List.of(name, test))
+                .addField(Integer.class, "age", Modifier.PRIVATE)
                 .build();
 
         JavaFile javaFile = JavaFile.builder(DEFAULT_PACKAGE_NAME, typeSpec).build();
