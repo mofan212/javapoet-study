@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -376,5 +378,30 @@ public class UseGuideTest implements WithAssertions {
                 .build();
         JavaFile javaFile2 = JavaFile.builder(DEFAULT_PACKAGE_NAME, roshambo2).build();
         javaFile2.writeTo(TARGET_FILE);
+    }
+
+    @Test
+    @SneakyThrows
+    public void testAnonymousInnerClasses() {
+        TypeSpec comparator = TypeSpec.anonymousClassBuilder("")
+                .addSuperinterface(ParameterizedTypeName.get(Comparator.class, String.class))
+                .addMethod(MethodSpec.methodBuilder("compare")
+                        .addAnnotation(Override.class)
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(String.class, "a")
+                        .addParameter(String.class, "b")
+                        .returns(int.class)
+                        .addStatement("return $N.length() - $N.length()", "a", "b")
+                        .build())
+                .build();
+        TypeSpec mySort = TypeSpec.classBuilder("MySort")
+                .addMethod(MethodSpec.methodBuilder("sortByLength")
+                        .addParameter(ParameterizedTypeName.get(List.class, String.class), "strings")
+                        .addStatement("$T.sort($N, $L)", Collections.class, "strings", comparator)
+                        .build())
+                .build();
+
+        JavaFile javaFile = JavaFile.builder(DEFAULT_PACKAGE_NAME, mySort).build();
+        javaFile.writeTo(TARGET_FILE);
     }
 }
