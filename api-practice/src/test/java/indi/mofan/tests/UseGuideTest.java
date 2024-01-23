@@ -1,5 +1,6 @@
-package indi.mofan;
+package indi.mofan.tests;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -8,7 +9,12 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import indi.mofan.annotations.Header;
+import indi.mofan.annotations.HeaderList;
+import indi.mofan.annotations.Headers;
 import indi.mofan.constant.TestConstants;
+import indi.mofan.log.LogReceipt;
+import indi.mofan.log.LogRecord;
 import lombok.SneakyThrows;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.Test;
@@ -402,6 +408,51 @@ public class UseGuideTest implements WithAssertions {
                 .build();
 
         JavaFile javaFile = JavaFile.builder(DEFAULT_PACKAGE_NAME, mySort).build();
+        javaFile.writeTo(TARGET_FILE);
+    }
+
+    @Test
+    @SneakyThrows
+    public void testAnnotations() {
+        MethodSpec toString = MethodSpec.methodBuilder("toString")
+                .addAnnotation(Override.class)
+                .returns(String.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("return $S", "Hoverboard")
+                .build();
+
+        MethodSpec recordEvent1 = MethodSpec.methodBuilder("recordEvent1")
+                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                .addAnnotation(AnnotationSpec.builder(Headers.class)
+                        .addMember("accept", "$S", "application/json; charset=utf-8")
+                        .addMember("userAgent", "$S", "Square Cash")
+                        .build())
+                .addParameter(LogRecord.class, "logRecord")
+                .returns(LogReceipt.class)
+                .build();
+
+        MethodSpec recordEvent2 = MethodSpec.methodBuilder("recordEvent2")
+                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                .addAnnotation(AnnotationSpec.builder(HeaderList.class)
+                        .addMember("value", "$L", AnnotationSpec.builder(Header.class)
+                                .addMember("name", "$S", "Accept")
+                                .addMember("value", "$S", "application/json; charset=utf-8")
+                                .build())
+                        .addMember("value", "$L", AnnotationSpec.builder(Header.class)
+                                .addMember("name", "$S", "User-Agent")
+                                .addMember("value", "$S", "Square Cash")
+                                .build())
+                        .build())
+                .addParameter(LogRecord.class, "logRecord")
+                .returns(LogReceipt.class)
+                .build();
+
+        TypeSpec typeSpec = TypeSpec.classBuilder("AbstractRecordEvent")
+                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                .addMethods(List.of(recordEvent1, recordEvent2, toString))
+                .build();
+
+        JavaFile javaFile = JavaFile.builder(DEFAULT_PACKAGE_NAME, typeSpec).build();
         javaFile.writeTo(TARGET_FILE);
     }
 }
