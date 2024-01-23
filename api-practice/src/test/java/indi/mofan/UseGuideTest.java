@@ -343,4 +343,38 @@ public class UseGuideTest implements WithAssertions {
         JavaFile javaFile = JavaFile.builder(DEFAULT_PACKAGE_NAME, typeSpec).build();
         javaFile.writeTo(TARGET_FILE);
     }
+
+    @Test
+    @SneakyThrows
+    public void testEnums() {
+        TypeSpec roshambo1 = TypeSpec.enumBuilder("Roshambo1")
+                .addModifiers(Modifier.PUBLIC)
+                .addEnumConstant("ROCK")
+                .addEnumConstant("SCISSORS")
+                .addEnumConstant("PAPER")
+                .build();
+        JavaFile javaFile1 = JavaFile.builder(DEFAULT_PACKAGE_NAME, roshambo1).build();
+        javaFile1.writeTo(TARGET_FILE);
+
+        TypeSpec roshambo2 = TypeSpec.enumBuilder("Roshambo2")
+                .addModifiers(Modifier.PUBLIC)
+                .addEnumConstant("ROCK", TypeSpec.anonymousClassBuilder("$S", "fist")
+                        .addMethod(MethodSpec.methodBuilder("toString")
+                                .addAnnotation(Override.class)
+                                .addModifiers(Modifier.PUBLIC)
+                                .addStatement("return $S", "avalanche!")
+                                .returns(String.class)
+                                .build()).
+                        build())
+                .addEnumConstant("SCISSORS", TypeSpec.anonymousClassBuilder("$S", "peace").build())
+                .addEnumConstant("PAPER", TypeSpec.anonymousClassBuilder("$S", "flat").build())
+                .addField(String.class, "handsign", Modifier.PRIVATE, Modifier.FINAL)
+                .addMethod(MethodSpec.constructorBuilder()
+                        .addParameter(String.class, "handsign")
+                        .addStatement("this.$N = $N", "handsign", "handsign")
+                        .build())
+                .build();
+        JavaFile javaFile2 = JavaFile.builder(DEFAULT_PACKAGE_NAME, roshambo2).build();
+        javaFile2.writeTo(TARGET_FILE);
+    }
 }
