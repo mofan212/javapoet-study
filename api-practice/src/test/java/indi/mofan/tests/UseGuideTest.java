@@ -9,12 +9,14 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
-import indi.mofan.annotations.Header;
-import indi.mofan.annotations.HeaderList;
-import indi.mofan.annotations.Headers;
+import indi.mofan.autocode.Conversation;
+import indi.mofan.autocode.Message;
+import indi.mofan.autocode.annotations.Header;
+import indi.mofan.autocode.annotations.HeaderList;
+import indi.mofan.autocode.annotations.Headers;
+import indi.mofan.autocode.log.LogReceipt;
+import indi.mofan.autocode.log.LogRecord;
 import indi.mofan.constant.TestConstants;
-import indi.mofan.log.LogReceipt;
-import indi.mofan.log.LogRecord;
 import lombok.SneakyThrows;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.Test;
@@ -450,6 +452,33 @@ public class UseGuideTest implements WithAssertions {
         TypeSpec typeSpec = TypeSpec.classBuilder("AbstractRecordEvent")
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                 .addMethods(List.of(recordEvent1, recordEvent2, toString))
+                .build();
+
+        JavaFile javaFile = JavaFile.builder(DEFAULT_PACKAGE_NAME, typeSpec).build();
+        javaFile.writeTo(TARGET_FILE);
+    }
+
+    @Test
+    @SneakyThrows
+    public void testJavaDoc() {
+        MethodSpec dismiss = MethodSpec.methodBuilder("dismiss")
+                .addJavadoc("""
+                        Hides {@code message} from the caller's history. Other
+                        participants in the conversation will continue to see the
+                        message in their own history unless they also delete it.
+                        """)
+                .addJavadoc("\n")
+                .addJavadoc("""
+                        <p>Use {@link #delete($T)} to delete the entire
+                        conversation for all participants.
+                        """, Conversation.class)
+                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                .addParameter(Message.class, "message")
+                .build();
+
+        TypeSpec typeSpec = TypeSpec.classBuilder("JavaDocTest")
+                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                .addMethod(dismiss)
                 .build();
 
         JavaFile javaFile = JavaFile.builder(DEFAULT_PACKAGE_NAME, typeSpec).build();

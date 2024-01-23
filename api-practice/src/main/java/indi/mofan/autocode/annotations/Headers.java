@@ -1,4 +1,4 @@
-package indi.mofan.annotations;
+package indi.mofan.autocode.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

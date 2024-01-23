@@ -1,4 +1,4 @@
-package indi.mofan.log;
+package indi.mofan.autocode.log;
 
 /**
  * @author mofan
